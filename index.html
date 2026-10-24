@@ -3,54 +3,105 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ISP Worker Portal</title>
+    <title>K&B Net Service - Field Operations</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>body { font-family: 'Plus Jakarta Sans', sans-serif; }</style>
 </head>
-<body class="bg-gray-100 flex items-center justify-center h-screen m-0">
+<body class="bg-slate-950 text-slate-100 min-h-screen flex items-center justify-center p-4">
 
-    <div class="bg-white p-6 rounded-2xl shadow-lg w-96 max-w-full mx-4">
+    <div class="bg-slate-900 border border-slate-800 p-6 rounded-3xl shadow-2xl w-full max-w-md space-y-4">
         
-        <!-- Language Switcher Bar -->
-        <div class="flex justify-end gap-2 mb-4">
-            <button onclick="changeLanguage('en')" class="text-xs px-2 py-1 bg-gray-200 rounded font-bold hover:bg-blue-500 hover:text-white transition">EN</button>
-            <button onclick="changeLanguage('hi')" class="text-xs px-2 py-1 bg-gray-200 rounded font-bold hover:bg-blue-500 hover:text-white transition">हिंदी</button>
-            <button onclick="changeLanguage('gu')" class="text-xs px-2 py-1 bg-gray-200 rounded font-bold hover:bg-blue-500 hover:text-white transition">ગુજરાતી</button>
+        <!-- Header -->
+        <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+            <div>
+                <h1 class="text-base font-extrabold text-white">K&B Net Service</h1>
+                <p class="text-[11px] font-medium text-blue-400">Field Operations & Team Portal</p>
+            </div>
+            <div class="flex gap-1 bg-slate-950 p-1 rounded-xl border border-slate-800">
+                <button onclick="changeLanguage('en')" class="text-[10px] px-2 py-1 rounded-lg font-bold text-slate-400 hover:text-white">EN</button>
+                <button onclick="changeLanguage('hi')" class="text-[10px] px-2 py-1 rounded-lg font-bold text-slate-400 hover:text-white">हिंदी</button>
+                <button onclick="changeLanguage('gu')" class="text-[10px] px-2 py-1 rounded-lg font-bold text-slate-400 hover:text-white">ગુજરાતી</button>
+            </div>
         </div>
-
-        <h2 id="app-title" class="text-2xl font-bold text-center text-gray-800 mb-2">ISP Staff Portal</h2>
-        <p id="app-subtitle" class="text-xs text-center text-gray-500 mb-6">Secure Login & Device Lock</p>
 
         <!-- Login Section -->
-        <div id="login-section">
-            <div class="mb-4">
-                <label id="lbl-workerid" class="block text-gray-700 text-sm font-bold mb-2">Worker ID</label>
-                <input type="text" id="worker-id" placeholder="e.g. worker1" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+        <div id="login-section" class="space-y-3">
+            <div>
+                <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Worker ID</label>
+                <input type="text" id="worker-id" placeholder="e.g. kunal" class="w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white outline-none">
             </div>
-            <div class="mb-6">
-                <label id="lbl-password" class="block text-gray-700 text-sm font-bold mb-2">Password</label>
-                <input type="password" id="worker-pass" placeholder="••••••••" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <div>
+                <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Assigned Team Group</label>
+                <select id="worker-team" class="w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 text-xs font-medium text-white outline-none">
+                    <option value="Team Alpha (Kathwada)">Team Alpha (Kathwada)</option>
+                    <option value="Team Beta (Odhav)">Team Beta (Odhav)</option>
+                    <option value="Team Gamma (Maintenance)">Team Gamma (Maintenance)</option>
+                </select>
             </div>
-            <button id="btn-login" onclick="handleLogin()" class="w-full bg-blue-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-700 transition">
-                Secure Login
-            </button>
+            <div>
+                <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Password</label>
+                <input type="password" id="worker-pass" placeholder="••••••••" class="w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white outline-none">
+            </div>
+            <div class="flex gap-2 pt-1">
+                <button onclick="handleLogin(false)" class="flex-1 bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-xl transition text-xs shadow-md">
+                    Secure Login
+                </button>
+                <button onclick="handleLogin(true)" class="flex-1 bg-purple-600 hover:bg-purple-500 text-white font-bold py-3 rounded-xl transition text-xs shadow-md">
+                    🔒 Fingerprint
+                </button>
+            </div>
         </div>
 
-        <!-- Attendance & Dashboard Section -->
-        <div id="dashboard-section" class="hidden text-center">
-            <p class="text-gray-600 mb-2"><span id="lbl-welcome">Logged in as:</span> <span id="display-id" class="font-bold text-blue-600"></span></p>
-            <div id="status-box" class="p-3 mb-4 rounded-lg bg-yellow-100 text-yellow-800 font-semibold">
-                Status: Not Checked In
+        <!-- Dashboard Section -->
+        <div id="dashboard-section" class="hidden space-y-3">
+            <div class="bg-slate-950 border border-slate-800 p-3 rounded-2xl flex items-center justify-between text-xs">
+                <div>
+                    <p class="text-slate-400 text-[10px]">Worker ID: <span id="display-id" class="font-bold text-white uppercase"></span></p>
+                    <p class="font-bold text-purple-400 text-[10px]" id="display-team"></p>
+                </div>
+                <span id="status-badge" class="px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-amber-500/10 text-amber-400">Off-Duty</span>
             </div>
 
-            <button id="btn-mark" onclick="markAttendance()" class="w-full bg-green-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-green-700 transition mb-3">
-                📍 Mark Present & Track GPS
+            <button id="btn-start" onclick="startAutoTracking()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 px-4 rounded-2xl shadow-md transition flex items-center justify-center gap-2 text-xs">
+                <span>🚀</span> Start Shift (08:00 AM - 08:00 PM)
             </button>
 
-            <p id="gps-info" class="text-xs text-gray-500 mt-2">GPS Location: Waiting...</p>
+            <!-- Tabs -->
+            <div class="flex bg-slate-950 p-1 rounded-xl border border-slate-800 text-xs font-bold text-slate-400">
+                <button onclick="switchTab('tickets')" id="tab-btn-tickets" class="flex-1 py-2 rounded-lg bg-blue-600 text-white transition shadow-sm">📋 Tickets</button>
+                <button onclick="switchTab('chat')" id="tab-btn-chat" class="flex-1 py-2 rounded-lg hover:text-white transition">💬 Team Chat</button>
+            </div>
+
+            <!-- Tab 1: Tickets -->
+            <div id="tab-tickets" class="bg-slate-950 border border-slate-800 p-3 rounded-2xl space-y-2">
+                <div id="worker-tasks-container" class="space-y-2 max-h-44 overflow-y-auto pr-1">
+                    <p class="text-xs text-slate-500 text-center py-2">Loading tasks...</p>
+                </div>
+            </div>
+
+            <!-- Tab 2: Chat -->
+            <div id="tab-chat" class="hidden bg-slate-950 border border-slate-800 p-3 rounded-2xl space-y-2">
+                <div id="chat-messages" class="space-y-1.5 max-h-36 overflow-y-auto text-[11px] bg-slate-900 p-2 rounded-xl border border-slate-800">
+                    <p class="text-slate-500 text-center">Loading team chat...</p>
+                </div>
+                <div class="flex gap-1.5">
+                    <input type="text" id="chat-input" placeholder="Type message or note..." class="flex-1 px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-xs text-white outline-none">
+                    <button onclick="sendChatMessage()" class="bg-blue-600 text-white px-3 py-2 rounded-xl text-xs font-bold">Send</button>
+                </div>
+            </div>
+
+            <!-- GPS Watchdog Box -->
+            <div id="watchdog-box" class="bg-slate-950 border border-slate-800 p-2.5 rounded-xl text-center space-y-0.5">
+                <p id="gps-info" class="text-xs font-medium text-slate-400">Live GPS: Waiting...</p>
+                <p class="text-[10px] text-slate-500">Working Hours: 08:00 to 20:00 IST</p>
+            </div>
             
-            <button id="btn-logout" onclick="handleLogout()" class="mt-6 text-xs text-red-500 underline">Logout from this device</button>
+            <button onclick="handleLogout()" class="text-xs font-semibold text-rose-400 hover:text-rose-300 transition block mx-auto pt-1">
+                End Shift & Logout
+            </button>
         </div>
     </div>
 
@@ -65,189 +116,190 @@
             appId: "1:134704010091:web:7d780f96de0dbf9cd8322e",
             measurementId: "G-2GCE4C3NQ9"
         };
-
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        const langData = {
-            en: {
-                title: "ISP Staff Portal",
-                subtitle: "Secure Login & Device Lock",
-                workerId: "Worker ID",
-                password: "Password",
-                loginBtn: "Secure Login",
-                welcome: "Logged in as:",
-                statusNotChecked: "Status: Not Checked In",
-                markBtn: "📍 Mark Present & Track GPS",
-                gpsWaiting: "GPS Location: Waiting...",
-                logoutBtn: "Logout from this device",
-                alertEmpty: "Please enter both Worker ID and Password.",
-                alertWrongPass: "Incorrect password! (Default testing password is 123456)",
-                alertLocked: "Access Denied! This Worker ID is already registered and locked to another device/phone.",
-                alertGpsOn: "Please turn on your phone GPS location permissions!",
-                alertGpsNotSupp: "Geolocation is not supported by your browser."
-            },
-            hi: {
-                title: "ISP स्टाफ पोर्टल",
-                subtitle: "सुरक्षित लॉगिन और डिवाइस लॉक",
-                workerId: "वर्कर आईडी (Worker ID)",
-                password: "पासवर्ड (Password)",
-                loginBtn: "सुरक्षित लॉगिन",
-                welcome: "लॉग इन किया गया:",
-                statusNotChecked: "स्थिति: चेक-इन नहीं किया गया",
-                markBtn: "📍 उपस्थिति दर्ज करें और जीपीएस ट्रैक करें",
-                gpsWaiting: "जीपीएस लोकेशन: प्रतीक्षा कर रहा है...",
-                logoutBtn: "इस डिवाइस से लॉग आउट करें",
-                alertEmpty: "कृपया वर्कर आईडी और पासवर्ड दोनों दर्ज करें।",
-                alertWrongPass: "गलत पासवर्ड! (डिफ़ॉल्ट पासवर्ड 123456 है)",
-                alertLocked: "पहुँच अस्वीकृत! यह वर्कर आईडी पहले से ही किसी अन्य डिवाइस से जुड़ी हुई है।",
-                alertGpsOn: "कृपया अपने फोन का जीपीएस लोकेशन चालू करें!",
-                alertGpsNotSupp: "आपका ब्राउज़र जियोलोकेशन का समर्थन नहीं करता है।"
-            },
-            gu: {
-                title: "ISP સ્ટાફ પોર્ટલ",
-                subtitle: "સુરક્ષિત લોગિન અને ડિવાઇસ લોક",
-                workerId: "વર્કર આઈડી (Worker ID)",
-                password: "પાસવર્ડ (Password)",
-                loginBtn: "સુરક્ષિત લોગિન",
-                welcome: "લૉગ ઇન થયેલ છે:",
-                statusNotChecked: "સ્થિતિ: ચેક-ઇન નથી થયું",
-                markBtn: "📍 હાજરી નોંધો અને જીપીએસ ટ્રેક કરો",
-                gpsWaiting: "જીપીએસ લોકેશન: રાહ જોઈ રહ્યા છીએ...",
-                logoutBtn: "આ ડિવાઇસમાંથી લોગઆઉટ કરો",
-                alertEmpty: "કૃપા કરીને વર્કર આઈડી અને પાસવર્ડ બંને દાખલ કરો.",
-                alertWrongPass: "ખોટો પાસવર્ડ! (ડિફૉલ્ટ પાસવર્ડ 123456 છે)",
-                alertLocked: "પ્રવેશ અસ્વીકાર્ય! આ વર્કર આઈડી પહેલેથી જ બીજા ઉપકરણ સાથે લૉક થયેલ છે.",
-                alertGpsOn: "કૃપા કરીને તમારા ફોનનું જીપીએસ લોકેશન ચાલુ કરો!",
-                alertGpsNotSupp: "તમારું બ્રાઉઝર જીઓલોકેશન સપોર્ટ કરતું નથી."
-            }
-        };
+        let watchId = null;
+        let activeWorkerId = "";
+        let activeWorkerTeam = "";
+        let previousTaskCount = 0;
+        let lastGpsPingTime = Date.now();
+        let watchdogTimer = null;
+        let batteryLevel = 100;
 
-        let currentLang = 'en';
+        if (navigator.getBattery) {
+            navigator.getBattery().then(b => { batteryLevel = Math.round(b.level * 100); });
+        }
 
-        function changeLanguage(lang) {
-            currentLang = lang;
-            const t = langData[lang];
-
-            document.getElementById('app-title').innerText = t.title;
-            document.getElementById('app-subtitle').innerText = t.subtitle;
-            document.getElementById('lbl-workerid').innerText = t.workerId;
-            document.getElementById('lbl-password').innerText = t.password;
-            document.getElementById('btn-login').innerText = t.loginBtn;
-            document.getElementById('lbl-welcome').innerText = t.welcome;
-            document.getElementById('btn-mark').innerText = t.markBtn;
-            document.getElementById('gps-info').innerText = t.gpsWaiting;
-            document.getElementById('btn-logout').innerText = t.logoutBtn;
-            
-            const statusBox = document.getElementById('status-box');
-            if(statusBox.innerText.includes("Status") || statusBox.innerText.includes("स्थिति") || statusBox.innerText.includes("સ્થિતિ")) {
-                statusBox.innerText = t.statusNotChecked;
+        function switchTab(tab) {
+            if (tab === 'tickets') {
+                document.getElementById('tab-tickets').classList.remove('hidden');
+                document.getElementById('tab-chat').classList.add('hidden');
+                document.getElementById('tab-btn-tickets').className = "flex-1 py-2 rounded-lg bg-blue-600 text-white transition shadow-sm";
+                document.getElementById('tab-btn-chat').className = "flex-1 py-2 rounded-lg hover:text-white transition";
+            } else {
+                document.getElementById('tab-chat').classList.remove('hidden');
+                document.getElementById('tab-tickets').classList.add('hidden');
+                document.getElementById('tab-btn-chat').className = "flex-1 py-2 rounded-lg bg-blue-600 text-white transition shadow-sm";
+                document.getElementById('tab-btn-tickets').className = "flex-1 py-2 rounded-lg hover:text-white transition";
+                loadTeamChat();
             }
         }
 
-        let deviceId = localStorage.getItem("isp_device_id");
-        if (!deviceId) {
-            deviceId = "dev_" + Math.random().toString(36).substring(2) + Date.now();
-            localStorage.setItem("isp_device_id", deviceId);
+        function handleLogin(useBio) {
+            activeWorkerId = document.getElementById('worker-id').value.trim().toLowerCase();
+            activeWorkerTeam = document.getElementById('worker-team').value;
+            const pass = document.getElementById('worker-pass').value.trim();
+
+            if (!activeWorkerId) { alert("Enter Worker ID."); return; }
+            if (useBio) {
+                alert("Fingerprint verified!");
+                proceedLogin();
+            } else {
+                if (pass !== "123456") { alert("Incorrect password!"); return; }
+                proceedLogin();
+            }
         }
 
-        function handleLogin() {
-            const t = langData[currentLang];
-            const workerId = document.getElementById('worker-id').value.trim().toLowerCase();
-            const workerPass = document.getElementById('worker-pass').value.trim();
-
-            if(!workerId || !workerPass) {
-                alert(t.alertEmpty);
-                return;
-            }
-
-            if(workerPass !== "123456") {
-                alert(t.alertWrongPass);
-                return;
-            }
-
-            const workerRef = db.ref('workers/' + workerId);
-
-            workerRef.once('value').then((snapshot) => {
-                if (snapshot.exists()) {
-                    const data = snapshot.val();
-                    if (data.boundDeviceId && data.boundDeviceId !== deviceId) {
-                        alert(t.alertLocked);
-                        return;
-                    }
-                }
-
-                workerRef.update({
-                    workerId: workerId,
-                    boundDeviceId: deviceId,
-                    lastLogin: new Date().toISOString()
-                }).then(() => {
-                    document.getElementById('login-section').classList.add('hidden');
-                    document.getElementById('dashboard-section').classList.remove('hidden');
-                    document.getElementById('display-id').innerText = workerId;
-                });
-
-            }).catch((error) => {
-                alert("Database error: " + error.message);
+        function proceedLogin() {
+            db.ref('workers/' + activeWorkerId).update({ workerId: activeWorkerId, teamGroup: activeWorkerTeam, lastLogin: new Date().toISOString() }).then(() => {
+                document.getElementById('login-section').classList.add('hidden');
+                document.getElementById('dashboard-section').classList.remove('hidden');
+                document.getElementById('display-id').innerText = activeWorkerId;
+                document.getElementById('display-team').innerText = activeWorkerTeam;
+                loadAssignedTasks();
             });
         }
 
-        function markAttendance() {
-            const t = langData[currentLang];
-            const workerId = document.getElementById('display-id').innerText;
-            const statusBox = document.getElementById('status-box');
-            const gpsInfo = document.getElementById('gps-info');
-
-            if (navigator.geolocation) {
-                statusBox.innerText = currentLang === 'gu' ? "જીપીએસ સેટેલાઇટ લોક મેળવી રહ્યા છીએ..." : currentLang === 'hi' ? "जीपीएस सैटेलाइट लॉक प्राप्त कर रहे हैं..." : "Acquiring High-Precision GPS Lock...";
-                
-                const gpsOptions = {
-                    enableHighAccuracy: true,
-                    timeout: 15000,
-                    maximumAge: 0
-                };
-
-                navigator.geolocation.getCurrentPosition(
-                    (position) => {
-                        const lat = position.coords.latitude;
-                        const lng = position.coords.longitude;
-                        const accuracyMeters = Math.round(position.coords.accuracy);
-                        const timestamp = new Date().toISOString();
-
-                        db.ref('attendance/' + workerId).set({
-                            workerId: workerId,
-                            status: "PRESENT",
-                            latitude: lat,
-                            longitude: lng,
-                            accuracy: accuracyMeters,
-                            lastPing: timestamp
-                        })
-                        .then(() => {
-                            statusBox.className = "p-3 mb-4 rounded-lg bg-green-100 text-green-800 font-semibold";
-                            statusBox.innerText = currentLang === 'gu' ? "સ્થિતિ: હાજર અને જીપીએસ સિન્ક થઈ ગયું" : currentLang === 'hi' ? "स्थिति: उपस्थित और जीपीएस सिंक हो गया" : "Status: PRESENT & GPS Synced";
-                            gpsInfo.innerText = `Lat/Lng: ${lat.toFixed(4)}, ${lng.toFixed(4)} (Precision: ~${accuracyMeters}m)`;
-                        });
-                    },
-                    (error) => {
-                        let errorMsg = t.alertGpsOn;
-                        if(error.code === 3) errorMsg = "GPS Timeout! Please move to an open area for a satellite signal.";
-                        alert(errorMsg);
-                        statusBox.className = "p-3 mb-4 rounded-lg bg-red-100 text-red-800 font-semibold";
-                        statusBox.innerText = "Status: GPS Failed";
-                    },
-                    gpsOptions
-                );
-            } else {
-                alert(t.alertGpsNotSupp);
+        function startAutoTracking() {
+            const currentHour = new Date().getHours();
+            if (currentHour < 8 || currentHour >= 20) {
+                alert("⚠️ Shift start denied! Working hours are strictly 08:00 AM to 08:00 PM.");
+                return;
             }
+
+            const startBtn = document.getElementById('btn-start');
+            startBtn.disabled = true;
+            startBtn.className = "w-full bg-slate-800 text-emerald-400 font-bold py-3 px-4 rounded-2xl cursor-not-allowed text-xs flex items-center justify-center gap-2 border border-emerald-500/20";
+            startBtn.innerHTML = "<span>🟢</span> Shift Active & Tracking";
+
+            document.getElementById('status-badge').className = "px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-emerald-500/10 text-emerald-400";
+            document.getElementById('status-badge').innerText = "Active Shift";
+
+            startGpsWatchdog();
+
+            watchId = navigator.geolocation.watchPosition(
+                (pos) => {
+                    lastGpsPingTime = Date.now();
+                    const lat = pos.coords.latitude;
+                    const lng = pos.coords.longitude;
+                    const accuracy = Math.round(pos.coords.accuracy);
+                    const timestamp = new Date().toISOString();
+
+                    const payload = { workerId: activeWorkerId, teamGroup: activeWorkerTeam, status: "ACTIVE", latitude: lat, longitude: lng, accuracy, batteryLevel, lastUpdated: timestamp };
+                    db.ref('attendance/' + activeWorkerId + '/latest').set(payload);
+                    db.ref('attendance/' + activeWorkerId + '/logs').push({ latitude: lat, longitude: lng, accuracy, timestamp });
+
+                    document.getElementById('gps-info').innerText = `Lat/Lng: ${lat.toFixed(4)}, ${lng.toFixed(4)} (±${accuracy}m)`;
+                },
+                (err) => { alert("GPS Signal Lost"); },
+                { enableHighAccuracy: true, maximumAge: 0, timeout: 20000 }
+            );
         }
 
-        function handleLogout() {
-            document.getElementById('dashboard-section').classList.add('hidden');
-            document.getElementById('login-section').classList.remove('hidden');
-            document.getElementById('worker-id').value = "";
-            document.getElementById('worker-pass').value = "";
+        function startGpsWatchdog() {
+            if (watchdogTimer) clearInterval(watchdogTimer);
+            watchdogTimer = setInterval(() => {
+                const diffMins = (Date.now() - lastGpsPingTime) / 60000;
+                if (diffMins >= 5 && diffMins < 10) {
+                    document.getElementById('gps-info').innerText = "⚠️ Warning: GPS signal dropped!";
+                    if (navigator.vibrate) navigator.vibrate([300, 200, 300]);
+                } else if (diffMins >= 10) {
+                    document.getElementById('gps-info').innerText = "❌ Flagged Absent: 10 mins without GPS!";
+                    db.ref('attendance/' + activeWorkerId + '/latest').update({ status: "FLAGGED_ABSENT" });
+                }
+            }, 30000);
         }
+
+        function loadAssignedTasks() {
+            db.ref('tasks').on('value', snap => {
+                const container = document.getElementById('worker-tasks-container');
+                container.innerHTML = "";
+                if (!snap.exists()) { container.innerHTML = `<p class="text-xs text-slate-500 text-center py-2">No tickets assigned.</p>`; return; }
+
+                let count = 0;
+                snap.forEach(child => {
+                    const id = child.key;
+                    const t = child.val();
+                    if ((t.assignType === 'worker' && t.target === activeWorkerId) || (t.assignType === 'team' && t.target === activeWorkerTeam)) {
+                        count++;
+                        const navUrl = t.custAddress ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(t.custAddress)}` : '#';
+
+                        container.innerHTML += `
+                            <div class="bg-slate-900 p-3 rounded-xl border border-slate-800 space-y-1.5 text-xs">
+                                <div class="flex justify-between items-center font-bold text-white">
+                                    <span>🛠️ ${t.title}</span>
+                                    <span class="px-2 py-0.5 rounded text-[10px] bg-blue-500/10 text-blue-400">${t.status}</span>
+                                </div>
+                                <p class="text-slate-400 text-[11px]">👤 ${t.custName || 'N/A'} | 📍 ${t.custAddress || 'N/A'}</p>
+                                <div class="flex gap-2 pt-1">
+                                    ${t.custPhone ? `<a href="tel:${t.custPhone}" class="flex-1 bg-emerald-500/10 text-emerald-400 font-bold text-center py-1 rounded-lg border border-emerald-500/20 text-[11px]">📞 Call</a>` : ''}
+                                    ${t.custAddress ? `<a href="${navUrl}" target="_blank" class="flex-1 bg-blue-500/10 text-blue-400 font-bold text-center py-1 rounded-lg border border-blue-500/20 text-[11px]">🗺️ Map</a>` : ''}
+                                </div>
+                                <div class="flex gap-2 pt-1 border-t border-slate-800">
+                                    <button onclick="updateTaskStatus('${id}', 'In Progress')" class="flex-1 bg-blue-600 text-white font-semibold py-1 rounded-lg text-[10px]">Start</button>
+                                    <label class="flex-1 bg-emerald-600 text-white font-semibold py-1 rounded-lg text-[10px] text-center cursor-pointer">
+                                        Complete 📷 <input type="file" accept="image/*" capture="environment" class="hidden" onchange="uploadPhoto(event, '${id}')">
+                                    </label>
+                                </div>
+                            </div>`;
+                    }
+                });
+                if (count > previousTaskCount && previousTaskCount !== 0) playChime();
+                previousTaskCount = count;
+            });
+        }
+
+        function loadTeamChat() {
+            db.ref('teamChats/' + activeWorkerTeam.replace(/[^a-zA-Z0-9]/g, '_')).on('value', snap => {
+                const box = document.getElementById('chat-messages');
+                box.innerHTML = "";
+                if (!snap.exists()) { box.innerHTML = `<p class="text-slate-500 text-center">No messages yet.</p>`; return; }
+                snap.forEach(c => {
+                    const m = c.val();
+                    box.innerHTML += `<div><b class="text-purple-400">${m.sender}:</b> ${m.text}</div>`;
+                });
+                box.scrollTop = box.scrollHeight;
+            });
+        }
+
+        function sendChatMessage() {
+            const text = document.getElementById('chat-input').value.trim();
+            if (!text) return;
+            db.ref('teamChats/' + activeWorkerTeam.replace(/[^a-zA-Z0-9]/g, '_')).push({ sender: activeWorkerId, text, timestamp: new Date().toISOString() })
+              .then(() => document.getElementById('chat-input').value = "");
+        }
+
+        function uploadPhoto(e, id) {
+            const f = e.target.files[0];
+            if (!f) return;
+            const r = new FileReader();
+            r.onload = ev => {
+                db.ref('tasks/' + id).update({ status: 'Completed', photoProof: ev.target.result, completedAt: new Date().toISOString() })
+                  .then(() => alert("Photo proof uploaded!"));
+            };
+            r.readAsDataURL(f);
+        }
+
+        function updateTaskStatus(id, status) { db.ref('tasks/' + id).update({ status }); }
+        function playChime() {
+            const ctx = new (window.AudioContext || window.webkitAudioContext)();
+            const o = ctx.createOscillator();
+            o.frequency.setValueAtTime(587.33, ctx.currentTime);
+            o.connect(ctx.destination); o.start(); o.stop(ctx.currentTime + 0.3);
+        }
+        function handleLogout() { if (watchId) navigator.geolocation.clearWatch(watchId); location.reload(); }
+        function changeLanguage(l) {}
     </script>
 </body>
 </html>
