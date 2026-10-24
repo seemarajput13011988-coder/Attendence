@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ISP Worker Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+</head>
+<body class="bg-gray-100 flex items-center justify-center h-screen m-0">
+
+    <div class="bg-white p-6 rounded-2xl shadow-lg w-96 max-w-full mx-4">
+        
+        <!-- Language Switcher Bar -->
+        <div class="flex justify-end gap-2 mb-4">
+            <button onclick="changeLanguage('en')" class="text-xs px-2 py-1 bg-gray-200 rounded font-bold hover:bg-blue-500 hover:text-white transition">EN</button>
+            <button onclick="changeLanguage('hi')" class="text-xs px-2 py-1 bg-gray-200 rounded font-bold hover:bg-blue-500 hover:text-white transition">हिंदी</button>
+            <button onclick="changeLanguage('gu')" class="text-xs px-2 py-1 bg-gray-200 rounded font-bold hover:bg-blue-500 hover:text-white transition">ગુજરાતી</button>
+        </div>
+
+        <h2 id="app-title" class="text-2xl font-bold text-center text-gray-800 mb-2">ISP Staff Portal</h2>
+        <p id="app-subtitle" class="text-xs text-center text-gray-500 mb-6">Secure Login & Device Lock</p>
+
+        <!-- Login Section -->
+        <div id="login-section">
+            <div class="mb-4">
+                <label id="lbl-workerid" class="block text-gray-700 text-sm font-bold mb-2">Worker ID</label>
+                <input type="text" id="worker-id" placeholder="e.g. worker1" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div class="mb-6">
+                <label id="lbl-password" class="block text-gray-700 text-sm font-bold mb-2">Password</label>
+                <input type="password" id="worker-pass" placeholder="••••••••" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            <button id="btn-login" onclick="handleLogin()" class="w-full bg-blue-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-700 transition">
+                Secure Login
+            </button>
+        </div>
+
+        <!-- Attendance & Dashboard Section -->
+        <div id="dashboard-section" class="hidden text-center">
+            <p class="text-gray-600 mb-2"><span id="lbl-welcome">Logged in as:</span> <span id="display-id" class="font-bold text-blue-600"></span></p>
+            <div id="status-box" class="p-3 mb-4 rounded-lg bg-yellow-100 text-yellow-800 font-semibold">
+                Status: Not Checked In
+            </div>
+
+            <button id="btn-mark" onclick="markAttendance()" class="w-full bg-green-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-green-700 transition mb-3">
+                📍 Mark Present & Track GPS
+            </button>
+
+            <p id="gps-info" class="text-xs text-gray-500 mt-2">GPS Location: Waiting...</p>
+            
+            <button id="btn-logout" onclick="handleLogout()" class="mt-6 text-xs text-red-500 underline">Logout from this device</button>
+        </div>
+    </div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyCM8iR9ImDzNSDcshdfdLM3DFoF_0LoZYQ",
+            authDomain: "attendence-app-16fe2.firebaseapp.com",
+            databaseURL: "https://attendence-app-16fe2-default-rtdb.firebaseio.com",
+            projectId: "attendence-app-16fe2",
+            storageBucket: "attendence-app-16fe2.firebasestorage.app",
+            messagingSenderId: "134704010091",
+            appId: "1:134704010091:web:7d780f96de0dbf9cd8322e",
+            measurementId: "G-2GCE4C3NQ9"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        const langData = {
+            en: {
+                title: "ISP Staff Portal",
+                subtitle: "Secure Login & Device Lock",
+                workerId: "Worker ID",
+                password: "Password",
+                loginBtn: "Secure Login",
+                welcome: "Logged in as:",
+                statusNotChecked: "Status: Not Checked In",
+                markBtn: "📍 Mark Present & Track GPS",
+                gpsWaiting: "GPS Location: Waiting...",
+                logoutBtn: "Logout from this device",
+                alertEmpty: "Please enter both Worker ID and Password.",
+                alertWrongPass: "Incorrect password! (Default testing password is 123456)",
+                alertLocked: "Access Denied! This Worker ID is already registered and locked to another device/phone.",
+                alertGpsOn: "Please turn on your phone GPS location permissions!",
+                alertGpsNotSupp: "Geolocation is not supported by your browser."
+            },
+            hi: {
+                title: "ISP स्टाफ पोर्टल",
+                subtitle: "सुरक्षित लॉगिन और डिवाइस लॉक",
+                workerId: "वर्कर आईडी (Worker ID)",
+                password: "पासवर्ड (Password)",
+                loginBtn: "सुरक्षित लॉगिन",
+                welcome: "लॉग इन किया गया:",
+                statusNotChecked: "स्थिति: चेक-इन नहीं किया गया",
+                markBtn: "📍 उपस्थिति दर्ज करें और जीपीएस ट्रैक करें",
+                gpsWaiting: "जीपीएस लोकेशन: प्रतीक्षा कर रहा है...",
+                logoutBtn: "इस डिवाइस से लॉग आउट करें",
+                alertEmpty: "कृपया वर्कर आईडी और पासवर्ड दोनों दर्ज करें।",
+                alertWrongPass: "गलत पासवर्ड! (डिफ़ॉल्ट पासवर्ड 123456 है)",
+                alertLocked: "पहुँच अस्वीकृत! यह वर्कर आईडी पहले से ही किसी अन्य डिवाइस से जुड़ी हुई है।",
+                alertGpsOn: "कृपया अपने फोन का जीपीएस लोकेशन चालू करें!",
+                alertGpsNotSupp: "आपका ब्राउज़र जियोलोकेशन का समर्थन नहीं करता है।"
+            },
+            gu: {
+                title: "ISP સ્ટાફ પોર્ટલ",
+                subtitle: "સુરક્ષિત લોગિન અને ડિવાઇસ લોક",
+                workerId: "વર્કર આઈડી (Worker ID)",
+                password: "પાસવર્ડ (Password)",
+                loginBtn: "સુરક્ષિત લોગિન",
+                welcome: "લૉગ ઇન થયેલ છે:",
+                statusNotChecked: "સ્થિતિ: ચેક-ઇન નથી થયું",
+                markBtn: "📍 હાજરી નોંધો અને જીપીએસ ટ્રેક કરો",
+                gpsWaiting: "જીપીએસ લોકેશન: રાહ જોઈ રહ્યા છીએ...",
+                logoutBtn: "આ ડિવાઇસમાંથી લોગઆઉટ કરો",
+                alertEmpty: "કૃપા કરીને વર્કર આઈડી અને પાસવર્ડ બંને દાખલ કરો.",
+                alertWrongPass: "ખોટો પાસવર્ડ! (ડિફૉલ્ટ પાસવર્ડ 123456 છે)",
+                alertLocked: "પ્રવેશ અસ્વીકાર્ય! આ વર્કર આઈડી પહેલેથી જ બીજા ઉપકરણ સાથે લૉક થયેલ છે.",
+                alertGpsOn: "કૃપા કરીને તમારા ફોનનું જીપીએસ લોકેશન ચાલુ કરો!",
+                alertGpsNotSupp: "તમારું બ્રાઉઝર જીઓલોકેશન સપોર્ટ કરતું નથી."
+            }
+        };
+
+        let currentLang = 'en';
+
+        function changeLanguage(lang) {
+            currentLang = lang;
+            const t = langData[lang];
+
+            document.getElementById('app-title').innerText = t.title;
+            document.getElementById('app-subtitle').innerText = t.subtitle;
+            document.getElementById('lbl-workerid').innerText = t.workerId;
+            document.getElementById('lbl-password').innerText = t.password;
+            document.getElementById('btn-login').innerText = t.loginBtn;
+            document.getElementById('lbl-welcome').innerText = t.welcome;
+            document.getElementById('btn-mark').innerText = t.markBtn;
+            document.getElementById('gps-info').innerText = t.gpsWaiting;
+            document.getElementById('btn-logout').innerText = t.logoutBtn;
+            
+            const statusBox = document.getElementById('status-box');
+            if(statusBox.innerText.includes("Status") || statusBox.innerText.includes("स्थिति") || statusBox.innerText.includes("સ્થિતિ")) {
+                statusBox.innerText = t.statusNotChecked;
+            }
+        }
+
+        let deviceId = localStorage.getItem("isp_device_id");
+        if (!deviceId) {
+            deviceId = "dev_" + Math.random().toString(36).substring(2) + Date.now();
+            localStorage.setItem("isp_device_id", deviceId);
+        }
+
+        function handleLogin() {
+            const t = langData[currentLang];
+            const workerId = document.getElementById('worker-id').value.trim().toLowerCase();
+            const workerPass = document.getElementById('worker-pass').value.trim();
+
+            if(!workerId || !workerPass) {
+                alert(t.alertEmpty);
+                return;
+            }
+
+            if(workerPass !== "123456") {
+                alert(t.alertWrongPass);
+                return;
+            }
+
+            const workerRef = db.ref('workers/' + workerId);
+
+            workerRef.once('value').then((snapshot) => {
+                if (snapshot.exists()) {
+                    const data = snapshot.val();
+                    if (data.boundDeviceId && data.boundDeviceId !== deviceId) {
+                        alert(t.alertLocked);
+                        return;
+                    }
+                }
+
+                workerRef.update({
+                    workerId: workerId,
+                    boundDeviceId: deviceId,
+                    lastLogin: new Date().toISOString()
+                }).then(() => {
+                    document.getElementById('login-section').classList.add('hidden');
+                    document.getElementById('dashboard-section').classList.remove('hidden');
+                    document.getElementById('display-id').innerText = workerId;
+                });
+
+            }).catch((error) => {
+                alert("Database error: " + error.message);
+            });
+        }
+
+        function markAttendance() {
+            const t = langData[currentLang];
+            const workerId = document.getElementById('display-id').innerText;
+            const statusBox = document.getElementById('status-box');
+            const gpsInfo = document.getElementById('gps-info');
+
+            if (navigator.geolocation) {
+                statusBox.innerText = currentLang === 'gu' ? "જીપીએસ સેટેલાઇટ લોક મેળવી રહ્યા છીએ..." : currentLang === 'hi' ? "जीपीएस सैटेलाइट लॉक प्राप्त कर रहे हैं..." : "Acquiring High-Precision GPS Lock...";
+                
+                const gpsOptions = {
+                    enableHighAccuracy: true,
+                    timeout: 15000,
+                    maximumAge: 0
+                };
+
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        const lat = position.coords.latitude;
+                        const lng = position.coords.longitude;
+                        const accuracyMeters = Math.round(position.coords.accuracy);
+                        const timestamp = new Date().toISOString();
+
+                        db.ref('attendance/' + workerId).set({
+                            workerId: workerId,
+                            status: "PRESENT",
+                            latitude: lat,
+                            longitude: lng,
+                            accuracy: accuracyMeters,
+                            lastPing: timestamp
+                        })
+                        .then(() => {
+                            statusBox.className = "p-3 mb-4 rounded-lg bg-green-100 text-green-800 font-semibold";
+                            statusBox.innerText = currentLang === 'gu' ? "સ્થિતિ: હાજર અને જીપીએસ સિન્ક થઈ ગયું" : currentLang === 'hi' ? "स्थिति: उपस्थित और जीपीएस सिंक हो गया" : "Status: PRESENT & GPS Synced";
+                            gpsInfo.innerText = `Lat/Lng: ${lat.toFixed(4)}, ${lng.toFixed(4)} (Precision: ~${accuracyMeters}m)`;
+                        });
+                    },
+                    (error) => {
+                        let errorMsg = t.alertGpsOn;
+                        if(error.code === 3) errorMsg = "GPS Timeout! Please move to an open area for a satellite signal.";
+                        alert(errorMsg);
+                        statusBox.className = "p-3 mb-4 rounded-lg bg-red-100 text-red-800 font-semibold";
+                        statusBox.innerText = "Status: GPS Failed";
+                    },
+                    gpsOptions
+                );
+            } else {
+                alert(t.alertGpsNotSupp);
+            }
+        }
+
+        function handleLogout() {
+            document.getElementById('dashboard-section').classList.add('hidden');
+            document.getElementById('login-section').classList.remove('hidden');
+            document.getElementById('worker-id').value = "";
+            document.getElementById('worker-pass').value = "";
+        }
+    </script>
+</body>
+</html>

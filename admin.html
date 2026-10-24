@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ISP Admin - Live Workforce Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+</head>
+<body class="bg-gray-100 p-6">
+
+    <div class="max-w-5xl mx-auto">
+        <h2 class="text-3xl font-bold text-gray-800 mb-1">📡 ISP Admin Live Tracking Dashboard</h2>
+        <p class="text-gray-600 mb-6">Monitor worker attendance, names, and precise GPS locations in real-time.</p>
+
+        <!-- Workers Table Card -->
+        <div class="bg-white shadow-md rounded-2xl overflow-hidden">
+            <table class="w-full border-collapse">
+                <thead>
+                    <tr class="bg-blue-600 text-white text-left text-sm">
+                        <th class="p-4">Worker ID / Name</th>
+                        <th class="p-4">Status</th>
+                        <th class="p-4">Live GPS Coordinates</th>
+                        <th class="p-4">Last Update Time</th>
+                        <th class="p-4">Map View</th>
+                    </tr>
+                </thead>
+                <tbody id="admin-table-body">
+                    <tr>
+                        <td colspan="5" class="text-center p-6 text-gray-500">Connecting to Firebase cloud...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyCM8iR9ImDzNSDcshdfdLM3DFoF_0LoZYQ",
+            authDomain: "attendence-app-16fe2.firebaseapp.com",
+            databaseURL: "https://attendence-app-16fe2-default-rtdb.firebaseio.com",
+            projectId: "attendence-app-16fe2",
+            storageBucket: "attendence-app-16fe2.firebasestorage.app",
+            messagingSenderId: "134704010091",
+            appId: "1:134704010091:web:7d780f96de0dbf9cd8322e",
+            measurementId: "G-2GCE4C3NQ9"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        const tableBody = document.getElementById('admin-table-body');
+
+        db.ref('attendance').on('value', (snapshot) => {
+            tableBody.innerHTML = "";
+
+            if (!snapshot.exists()) {
+                tableBody.innerHTML = `<tr><td colspan="5" class="text-center p-6 text-gray-500">No attendance records found yet.</td></tr>`;
+                return;
+            }
+
+            snapshot.forEach((childSnapshot) => {
+                const data = childSnapshot.val();
+                const workerId = data.workerId || "Unknown";
+                const status = data.status || "ABSENT";
+                const lat = data.latitude;
+                const lng = data.longitude;
+                const accuracy = data.accuracy ? `(±${data.accuracy}m)` : "";
+                const timeString = data.lastPing ? new Date(data.lastPing).toLocaleTimeString() : "N/A";
+
+                const statusColor = status === "PRESENT" ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800";
+                const googleMapsUrl = `https://www.google.com/maps?q=${lat},${lng}`;
+
+                let row = `
+                    <tr class="border-b hover:bg-gray-50 text-sm">
+                        <td class="p-4 font-bold text-gray-800 flex items-center gap-2">
+                            👤 ${workerId}
+                        </td>
+                        <td class="p-4">
+                            <span class="px-2.5 py-1 rounded-full text-xs font-semibold ${statusColor}">${status}</span>
+                        </td>
+                        <td class="p-4 text-gray-600 font-mono">
+                            ${lat ? `${lat.toFixed(4)}, ${lng.toFixed(4)} <br><span class="text-xs text-blue-500 font-sans">Accuracy: ${accuracy}</span>` : "No GPS Data"}
+                        </td>
+                        <td class="p-4 text-gray-500">
+                            🕒 ${timeString}
+                        </td>
+                        <td class="p-4">
+                            ${lat ? `
+                                <a href="${googleMapsUrl}" target="_blank" class="inline-flex items-center gap-1 bg-blue-50 text-blue-600 border border-blue-200 px-3 py-1.5 rounded-lg font-semibold hover:bg-blue-600 hover:text-white transition shadow-sm">
+                                    📍 Open Pinned Map
+                                </a>
+                            ` : `<span class="text-gray-400 text-xs">Not Available</span>`}
+                        </td>
+                    </tr>
+                `;
+                tableBody.innerHTML += row;
+            });
+        });
+    </script>
+</body>
+</html>
